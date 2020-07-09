@@ -1,0 +1,92 @@
+<html><head><base target="_blank">
+<meta name="viewport" content="width=device-width" >
+</head><body>
+更新：07/09 16:00
+<div>
+  <input id="cStart" style="width: 80px; height: 30px; margin-right: 10px;" type="button" value="カメラ起動">
+  <input id="cEnd" style="width: 80px; height: 30px; margin-right: 20px;" type="button" value="カメラ停止">
+</div>
+<br>
+<div>
+  読み取り結果：<br />
+  <input style="width: 100%;" id="qr" type="text" /><br />
+  <input id="send" type="button" value="読み取り結果消去" />
+</div>
+<table>
+  <tbody><tr>
+    <td>
+      <video width="300" height="300" id="myVideo" autoplay="" playsinline=""></video>
+    </td>
+  </tr>
+</tbody></table>
+<script src="./jsQR.js?a=20200709" type="text/javascript"></script>
+<script type="text/javascript">
+  var localStream = null;
+  var video = document.getElementById('myVideo');
+  var input = document.getElementById('qr');
+  
+  // カメラの起動
+  document.getElementById("cStart").addEventListener('click',function(){
+    //navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || window.navigator.mozGetUserMedia;
+
+    // カメラと接続していたら停止
+    if (localStream) {
+        localStream.getVideoTracks().forEach(function(devise) {
+            devise.stop();
+        });
+        localStream = null;
+        video.srcObject = null;
+    }
+    var medias = {
+      audio: false,
+      video: {
+        facingMode: { exact: "environment" }
+      }
+    }
+
+    navigator.mediaDevices.getUserMedia(medias).then(function(stream) {
+        video.srcObject = stream;
+        localStream = stream;
+      }).catch(function(err) {
+        alert(err);
+    document.write(err);
+    });
+  },false);
+
+  // カメラの停止
+  document.getElementById("cEnd").addEventListener('click',function(){
+    // カメラと接続していたら停止
+    if (localStream) {
+      localStream.getVideoTracks().forEach(function(devise) {
+        devise.stop();
+      });
+      localStream = null;
+      video.srcObject = null;
+    }
+  },false);
+
+  // スキャン処理
+  setTimeout(function scan() { 
+    if(localStream && (!input.value) ) {
+      //canvasにコピー
+      var canvas = document.createElement("canvas");
+      var w = video.videoWidth;
+      var h = video.videoHeight;
+      canvas.setAttribute("width", w);
+      canvas.setAttribute("height", h);
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, w, h);
+      var imageData = ctx.getImageData(0, 0, w, h);
+      var code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) {
+        console.log("Found QR code", code, code.data);
+        input.value = code.data;
+      }
+    }
+    setTimeout(scan, 500);
+  }, 500);
+
+  document.getElementById("send").addEventListener('click',function(){
+    input.value = "";
+  },false);
+</script></body></html>
