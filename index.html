@@ -63,7 +63,7 @@
   },false);
 
   // スキャン処理
-  setInterval(() => { 
+  setTimeout(function scan() { 
     if(localStream && (!input.value) ) {
       //canvasにコピー
       var canvas = document.createElement("canvas");
@@ -80,6 +80,7 @@
         input.value = code.data;
       }
     }
+    setTimeout(scan,500);
   }, 500);
 
   document.getElementById("send").addEventListener('click',function(){
